@@ -34,7 +34,7 @@ var get = function(id, callback) {
 				if (err) {
 					return callback("Error getting movies:"+err);
 				}
-				director.movies = reply;
+				director.favorite_movies = reply;
 				return callback(null, director)
 			});
 		}
@@ -82,6 +82,7 @@ var saveOnRedis = function (director, callback) {
 					return callback(null);
 				}
 				// index movies
+				console.log("movies:"+director.favorite_movies);
 				client.sadd(getMoviesKey(director.id), director.favorite_movies, function(err, reply) {
 					return callback(err);
 				});		
@@ -105,18 +106,8 @@ var create = function(account, callback) {
 };
 
 var update = function(director, callback) {
-	get(director.id, function(err, old) {
-		if (err || old == null) {
-			return callback("Error updating director:"+err);
-		}
-		if (director.livestream_id != old.livestream_id ||
-			director.full_name != old.full_name ||
-			director.dob != old.dob) {
-			return callback("Error trying to update reserved fields", director, old)
-		}
-		saveOnRedis(director, function(err) {
-			return callback(err, director, old);
-   		});
+	saveOnRedis(director, function(err) {
+		return callback(err);
 	});
 }
 

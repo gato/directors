@@ -87,8 +87,7 @@ router.route('/directors')
 
 router.route('/directors/:id')
 
-    .get(function(req, res) {
-        console.log('get director id:'+req.params.id);  
+    .get(function(req, res) {        
         director.get(req.params.id, function(err, dir) {
         	if (err) {
 				res.status(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -105,8 +104,44 @@ router.route('/directors/:id')
         });
     })
     .put(function(req, res) { 
-        console.log('put');  
-        res.json({ message: 'director updated!' });        
+        if (req.header('Content-Type') != 'application/json') {
+        	res.status(HttpStatus.BAD_REQUEST);
+			res.send('Content-Type should be "application/json"');
+			return;
+        }
+        // check existance
+        director.get(req.params.id, function(err, old) {
+        	if (err) {
+				res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+				res.send('Internal error recovering director:'+err);	  
+				return; 	
+        	}
+        	if (!old) {
+        		// could be 404 too, but bad request seems better.
+        		res.status(HttpStatus.BAD_REQUEST);
+				res.send('Director not found');
+				return;
+        	}
+        	var dir=req.body;
+        	dir.id = req.params.id;
+        	console.log(dir)
+        	if (dir.livestream_id != old.livestream_id ||
+				dir.full_name != old.full_name ||
+				dir.dob != old.dob) {
+        		res.status(HttpStatus.FORBIDDEN);
+				res.send("Reserved field can't be updated");
+				return;
+			}
+			director.update(dir, function(err){
+	        	if (err) {
+					res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+					res.send('Internal error storing director:'+err);	  
+					return; 	
+	        	}
+	        	res.status(HttpStatus.OK);
+				res.json(dir);  
+			});
+        });
     });
 
 app.use('/', router);
