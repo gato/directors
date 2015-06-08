@@ -75,7 +75,7 @@ router.route('/directors')
 						return;			        			
 	        		}
 			        res.status(HttpStatus.CREATED)
-			        res.json(JSON.stringify(dir));   	        		
+			        res.json(dir);   	        		
 	        	});
 	        });
         });
@@ -89,7 +89,20 @@ router.route('/directors/:id')
 
     .get(function(req, res) {
         console.log('get director id:'+req.params.id);  
-        res.json({ message: 'director' + req.params.id });      	
+        director.get(req.params.id, function(err, dir) {
+        	if (err) {
+				res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+				res.send('Internal error recovering director:'+err);	  
+				return; 	
+        	}
+        	if (!dir) {
+        		res.status(HttpStatus.NOT_FOUND);
+				res.send('Director not found');
+				return;
+        	}
+        	res.status(HttpStatus.OK);
+			res.json(dir);  
+        });
     })
     .put(function(req, res) { 
         console.log('put');  
