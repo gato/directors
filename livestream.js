@@ -1,12 +1,16 @@
 "use strict";
 
 var https = require('https');
+var httpStatus = require('http-status-codes');
 
 var getAccount = function(id, callback) {
   	// https://api.new.livestream.com/accounts/6488818
 	https.get('https://api.new.livestream.com/accounts/'+id, function(res) {
-		if (res.statusCode != 200) {
-	  		return callback("error retriving account from livestream status:"+statusCode, null)
+		if (res.statusCode == httpStatus.NOT_FOUND) {
+			return callback(null,null);
+		}
+		if (res.statusCode != httpStatus.OK) {
+	  		return callback("error retriving account from livestream status:"+res.statusCode, null);
 	  	}
 		res.setEncoding('utf-8');
 	    var response = '';
@@ -22,12 +26,12 @@ var getAccount = function(id, callback) {
 	    		account = JSON.parse(response);
 	    	}
 	    	catch (e) {
-	    		err = "Can't parse livestream response error:" + e
+	    		err = "Can't parse livestream response error:" + e;
 	    	}
 	    	return callback(err , account);
 	    });
 	}).on('error', function(e) {
-	  	return callback("error retriving account from livestream error:" + e, null)
+	  	return callback("error retriving account from livestream error:" + e, null);
 	});
 }
 
