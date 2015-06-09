@@ -1,18 +1,17 @@
-'use strict';
-
+"use strict";
 
 var request = require('supertest');
 var should = require('should');
 var httpStatus = require('http-status-codes');
+var th = require('./test_helper.js')
 
 process.env.NODE_ENV = 'test';
 var app = require('../server.js').app;
 
 beforeEach(function (done) {
-	function clearDB() {
+	th.clearDB(function(err) {
 		return done();
-	}
-	clearDB();
+	});
 });
 
 describe('POST /directors', function() {
@@ -47,6 +46,7 @@ describe('POST /directors', function() {
    		});
     });
    	it('should return "Bad Request" if livestream_id is not a valid one', function (done) {
+   		this.timeout(10000);
    		request(app)
     	.post('/directors/')
 	    .set('Content-Type','application/json')
@@ -57,6 +57,39 @@ describe('POST /directors', function() {
     		done();
    		});
     });
+   	it('should create a director if livestream_id is valid', function (done) {
+   		this.timeout(10000);
+   		request(app)
+    	.post('/directors/')
+	    .set('Content-Type','application/json')
+	    .send(JSON.stringify({ livestream_id: 6488818 }))
+    	.expect(httpStatus.CREATED)
+    	.end(function (err, res) {
+    		should.not.exist(err);
+    		done();
+   		});
+    });        
+   	it('should return "Conflict (409)" if livestream_id is alredy used by other director', function (done) {
+   		this.timeout(15000);
+   		
+   		request(app)
+    	.post('/directors/')
+	    .set('Content-Type','application/json')
+	    .send(JSON.stringify({ livestream_id: 6488818 }))
+    	.expect(httpStatus.CREATED)
+    	.end(function (err, res) {
+    		should.not.exist(err);
+	   		request(app)
+	    	.post('/directors/')
+		    .set('Content-Type','application/json')
+		    .send(JSON.stringify({ livestream_id: 6488818 }))
+	    	.expect(httpStatus.CONFLICT)
+ 			.end(function (err, res) {
+    			should.not.exist(err);
+    			done();
+   			});
+   		});
+    });      
 });
 
 describe('GET /directors/:id', function () {
