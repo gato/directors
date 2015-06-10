@@ -3,6 +3,7 @@
 var https = require('https');
 var httpStatus = require('http-status-codes');
 
+// gets a livestream account from its id
 var getAccount = function(id, callback) {
   	// https://api.new.livestream.com/accounts/6488818
 	https.get('https://api.new.livestream.com/accounts/'+id, function(res) {

@@ -3,6 +3,7 @@
 var redis = require('redis');
 var uuid = require('uuid')
 // TODO: read configuration for redis (now localhost / default port)
+// and the same instance for test and "production"
 var client = redis.createClient();
 
 // TODO: handle redis connection errors 
@@ -21,6 +22,7 @@ var getMoviesKey = function(id) {
 	return 'movies:' + id;
 }
 
+// method for retrieving a director from redis
 var get = function(id, callback) {
 	var director = null;
 	client.get(getDirectorKey(id), function(err, reply) {
@@ -44,6 +46,7 @@ var get = function(id, callback) {
 	});
 };
 
+// find director id (uuid) by Livestream_id
 var findByLsId = function(lsid, callback) {
 	client.get(getLivestreamKey(lsid), function (err, reply) {
         if(err) {
@@ -57,6 +60,11 @@ var findByLsId = function(lsid, callback) {
 	});
 };
 
+// store and indexes director on redis
+// creates 3 entries for a director
+// director:uuid => director_data
+// ls:livestream_id => director.uuid
+// movies:director.uuid => set of movies (strings for now)
 var saveOnRedis = function (director, callback) {
 	var storable = {livestream_id: director.livestream_id,
 		   full_name: director.full_name,
@@ -90,6 +98,7 @@ var saveOnRedis = function (director, callback) {
 	});
 };
 
+// create new director from data
 var create = function(account, callback) {
 	// create director entity
 	var director = {id : uuid.v1(), 
@@ -104,6 +113,7 @@ var create = function(account, callback) {
     });
 };
 
+// update director 
 var update = function(director, callback) {
 	saveOnRedis(director, function(err) {
 		return callback(err);

@@ -41,7 +41,7 @@ router.route('/directors')
 			res.send('Invalid payload livestream_id not found');
 			return;
         }
-        // check in redis for existance 
+        // check in redis for existence 
         director.findByLsId(lsid, function(err, uuid) {
         	if (err) {
         		// error with redis => server error 500
@@ -111,7 +111,7 @@ router.route('/directors/:id')
 			res.send('Content-Type should be "application/json"');
 			return;
         }
-        // check existance
+        // check existence
         director.get(req.params.id, function(err, old) {
         	if (err) {
 				res.status(httpStatus.INTERNAL_SERVER_ERROR);
@@ -126,6 +126,7 @@ router.route('/directors/:id')
         	}
         	var dir=req.body;
         	dir.id = req.params.id;
+        	// check if any of the forbidden fields where modified
         	if (dir.livestream_id != old.livestream_id ||
 				dir.full_name != old.full_name ||
 				dir.dob != old.dob) {
@@ -133,6 +134,7 @@ router.route('/directors/:id')
 				res.send("Reserved field can't be updated");
 				return;
 			}
+			// update redis 
 			director.update(dir, function(err){
 	        	if (err) {
 					res.status(httpStatus.INTERNAL_SERVER_ERROR);

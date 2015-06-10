@@ -251,7 +251,7 @@ describe('PUT /directors', function() {
 		    	.expect(httpStatus.OK)
 	 			.end(function (err, res) {
 		    		should.not.exist(err);
-		    		// check data was actually stored
+		    		// check that data was actually stored
 		    		res.body.should.have.property('favorite_camera');
 	    			res.body.favorite_camera.should.equal('Canon 7D');    			
 		    		res.body.should.have.property('favorite_movies').with.lengthOf(3);
