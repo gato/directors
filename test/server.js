@@ -26,6 +26,18 @@ var createTestDirector = function(app, callback) {
     });
 };
 
+var createOtherDirector = function(app, callback) {
+	request(app)
+    .post('/directors/')
+	.set('Content-Type','application/json')
+	.send(JSON.stringify({ livestream_id: 6488824 }))
+    .expect(httpStatus.CREATED)
+    .end(function(err, res) {
+		should.not.exist(err);
+    	callback(res);
+    });
+};
+
 var director = {id : 'invalid' , 
 	livestream_id: 6488818,
 	full_name: 'Martin Scorsese',
@@ -260,6 +272,41 @@ describe('PUT /directors', function() {
 	   		});
  		});
     });
+});      
+
+describe('GET /directors (getAll)', function() {
+   	it('should return all directors currently on redis', function (done) {
+   		this.timeout(15000);
+   		createTestDirector(app,function (res) {
+   			createOtherDirector(app,function (res) {
+		   		request(app)
+		    	.get('/directors/')
+		    	.expect(httpStatus.OK)
+		    	.end(function (err, res) {
+		    		should.not.exist(err);
+
+		    		// I do not check values because directors can be 
+		    		// returned in any order.
+		    		
+					res.body[0].should.have.property('id');
+					res.body[0].should.have.property('livestream_id');
+					res.body[0].should.have.property('full_name');
+					res.body[0].should.have.property('dob');
+					res.body[0].should.have.property('favorite_camera');
+					res.body[0].should.have.property('favorite_movies');
+
+					res.body[1].should.have.property('id');
+					res.body[1].should.have.property('livestream_id');
+					res.body[1].should.have.property('full_name');
+					res.body[1].should.have.property('dob');
+					res.body[1].should.have.property('favorite_camera');
+					res.body[1].should.have.property('favorite_movies');
+
+		    		done();
+		   		});
+	   		});
+ 		});
+    });      
 });
 
 

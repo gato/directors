@@ -83,8 +83,9 @@ router.route('/directors')
         });
     })
     .get(function(req, res) {
-        console.log('get');  
-        res.json({ message: 'all directors' });        
+        director.getAll(function(err, directors) {
+	        res.json(directors);        
+        });
     });
 
 router.route('/directors/:id')

@@ -120,7 +120,40 @@ var update = function(director, callback) {
 	});
 }
 
+// return all directors
+var getAll = function(callback) {
+	// get all keys matching director:*
+	// uses getDirectorKey because function do not check for id validity to
+	// construct it
+	client.keys(getDirectorKey('*'), function (err, keys) {
+		if (err) {
+			return callback(err,null);
+		}
+		var directors = [];
+		// use iterate() pattern to avoid making too many gets to redis concurrently.
+		function iterate() {
+			var key = keys.shift();
+			if (key == null) {
+				return callback (null, directors);
+			}
+			// getDirectorKey('') will return the director key prefix
+			// that will be removed from the redis returned key to obtain
+			// only the id which is what get uses 
+			var id = key.substring(getDirectorKey('').length);
+			get(id, function(err, director) {
+				if (err) {
+					return callback(err, null);
+				}
+				directors = directors.concat(director);
+				return iterate();
+			});
+		}
+		iterate();
+	});
+}
+
 exports.get = get;
 exports.findByLsId = findByLsId;
 exports.create = create;
 exports.update = update;
+exports.getAll = getAll;
