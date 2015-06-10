@@ -5,6 +5,7 @@ var bodyParser = require('body-parser');
 var httpStatus = require('http-status-codes');
 var director   = require('./director.js');
 var livestream = require('./livestream.js')
+var md5 	   = require('MD5');
 var app        = express();                 
 var port 	   = 8080; 
 
@@ -125,6 +126,14 @@ router.route('/directors/:id')
 				res.send('Director not found');
 				return;
         	}
+
+        	var authHeader = 'Bearer '+md5(old.full_name);
+        	if (req.header('Authorization') != authHeader) {
+        		res.status(httpStatus.FORBIDDEN);
+				res.send("Authorization failed, invalid or null Bearer");
+				return;
+        	}
+        	
         	var dir=req.body;
         	dir.id = req.params.id;
         	// check if any of the forbidden fields where modified

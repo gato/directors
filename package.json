@@ -8,6 +8,7 @@
         "redis": "~0.12.1",
         "http-status-codes": "~1.0.5",
         "uuid": "~2.0.1",
+        "MD5": "~1.2.2",
         "supertest": "~1.0.1",
         "mocha": "~2.2.5",
         "should": "~6.0.3" 	

@@ -1,9 +1,10 @@
 "use strict";
 
-var request = require('supertest');
-var should = require('should');
-var httpStatus = require('http-status-codes');
-var th = require('./test_helper.js')
+var request 	= require('supertest');
+var should 		= require('should');
+var httpStatus  = require('http-status-codes');
+var th 			= require('./test_helper.js')
+var md5 	    = require('MD5');
 
 process.env.NODE_ENV = 'test';
 var app = require('../server.js').app;
@@ -184,7 +185,7 @@ describe('PUT /directors', function() {
     		should.not.exist(err);
     		done();
    		});
-    });
+    });   
 	it('should return "Forbidden" if trying to change livestream_id', function (done) {
    		this.timeout(15000);
    		var dir1 = JSON.parse(JSON.stringify(director)); // clone director
@@ -194,7 +195,8 @@ describe('PUT /directors', function() {
 	   		dir1.livestream_id = 1;
 	   		request(app)
 	    	.put('/directors/'+uuid)
-	    	.set('Content-Type','application/json')	    	
+	    	.set('Content-Type','application/json')	
+	    	.set('Authorization', 'Bearer '+md5(dir1.full_name))	    	
 	    	.send(JSON.stringify(dir1))
 	    	.expect(httpStatus.FORBIDDEN)
 	    	.end(function (err, res) {
@@ -212,7 +214,8 @@ describe('PUT /directors', function() {
 	   		dir1.full_name = 'other name';
 	   		request(app)
 	    	.put('/directors/'+uuid)
-	    	.set('Content-Type','application/json')	    	
+	    	.set('Content-Type','application/json')
+	    	.set('Authorization', 'Bearer '+md5(dir1.full_name))		    	
 	    	.send(JSON.stringify(dir1))
 	    	.expect(httpStatus.FORBIDDEN)
 	    	.end(function (err, res) {
@@ -230,7 +233,8 @@ describe('PUT /directors', function() {
 	   		dir1.dob = '2000-11-17T00:00:00.000Z';
 	   		request(app)
 	    	.put('/directors/'+uuid)
-	    	.set('Content-Type','application/json')	    	
+	    	.set('Content-Type','application/json')	
+	    	.set('Authorization', 'Bearer '+md5(dir1.full_name))	    	
 	    	.send(JSON.stringify(dir1))
 	    	.expect(httpStatus.FORBIDDEN)
 	    	.end(function (err, res) {
@@ -239,7 +243,7 @@ describe('PUT /directors', function() {
 	   		});
  		});
     });
-	it('should update camera and movies', function (done) {
+	it('should return "Forbidden" if Authorization header not present', function (done) {
    		this.timeout(15000);
    		var dir1 = JSON.parse(JSON.stringify(director)); // clone director
    		createTestDirector(app, function (res) {
@@ -250,6 +254,46 @@ describe('PUT /directors', function() {
 	   		request(app)
 	    	.put('/directors/'+uuid)
 	    	.set('Content-Type','application/json')	    	
+	    	.send(JSON.stringify(dir1))
+	    	.expect(httpStatus.FORBIDDEN)
+	    	.end(function (err, res) {
+	    		should.not.exist(err);
+	    		done();
+	   		});
+ 		});
+    });     
+	it('should return "Forbidden" if Authorization header is invalid', function (done) {
+   		this.timeout(15000);
+   		var dir1 = JSON.parse(JSON.stringify(director)); // clone director
+   		createTestDirector(app, function (res) {
+   			var uuid=res.body.id
+	   		dir1.id = uuid;
+	   		dir1.favorite_camera = 'Canon 7D';
+	   		dir1.favorite_movies = ['Plan 9 from outer space', 'Megashark vs giant octopus', 'tokio gore police' ];
+	   		request(app)
+	    	.put('/directors/'+uuid)
+	    	.set('Content-Type','application/json')
+	    	.set('Authorization', 'Bearer '+md5('some invalid name'))	    	
+	    	.send(JSON.stringify(dir1))
+	    	.expect(httpStatus.FORBIDDEN)
+	    	.end(function (err, res) {
+	    		should.not.exist(err);
+	    		done();
+	   		});
+ 		});
+    });    
+	it('should update camera and movies', function (done) {
+   		this.timeout(15000);
+   		var dir1 = JSON.parse(JSON.stringify(director)); // clone director
+   		createTestDirector(app, function (res) {
+   			var uuid=res.body.id
+	   		dir1.id = uuid;
+	   		dir1.favorite_camera = 'Canon 7D';
+	   		dir1.favorite_movies = ['Plan 9 from outer space', 'Megashark vs giant octopus', 'tokio gore police' ];
+	   		request(app)
+	    	.put('/directors/'+uuid)
+	    	.set('Content-Type','application/json')
+	    	.set('Authorization', 'Bearer '+md5(dir1.full_name))	    	
 	    	.send(JSON.stringify(dir1))
 	    	.expect(httpStatus.OK)
 	    	.end(function (err, res) {
@@ -287,7 +331,7 @@ describe('GET /directors (getAll)', function() {
 
 		    		// I do not check values because directors can be 
 		    		// returned in any order.
-		    		
+
 					res.body[0].should.have.property('id');
 					res.body[0].should.have.property('livestream_id');
 					res.body[0].should.have.property('full_name');
