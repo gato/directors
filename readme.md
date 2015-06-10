@@ -49,4 +49,6 @@ npm test
 - actually test can take some time (mostly waiting a response from livestream API) test should mock livestream api to make them fast and also some error conditions could be tested.
 - server.js should be splitted in files main and methods (based on HTTP methods)
 - devel dependencies are declared in main package and not in devDependencies 
-
+- movies are a string, but should be an entity with id, name & other useful data. in redis movies:uuid key instead of a set of string should be a set of uuids pointing to these movies. 
+- with movies stored in it's own key, director.get will have a 1+n issue (retrieving the movies). This issue shouldn't be a real problem when getting a single entity but will be a real one when doing director.getAll(). 
+- to reduce the impact on getAll() a possible solution could be: to not retrieve movies (only retrieve keys or nothing) when doing getall() and change the api response to http status 206 (partial content), and retrive them when get for a specific director is called.
