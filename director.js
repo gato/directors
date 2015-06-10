@@ -29,8 +29,8 @@ var get = function(id, callback) {
 		}
 		try {
 			director = JSON.parse(reply);
+			director.id = id; // set id as is not stored in redis value
 			client.smembers(getMoviesKey(id), function(err, reply) {
-				console.log(reply);
 				if (err) {
 					return callback("Error getting movies:"+err);
 				}

@@ -102,5 +102,31 @@ describe('GET /directors/:id', function () {
     		done();
    		});
     });
+   	it('should return a director when uuid is ok', function (done) {
+   		this.timeout(15000);   		
+   		request(app)
+    	.post('/directors/')
+	    .set('Content-Type','application/json')
+	    .send(JSON.stringify({ livestream_id: 6488818 }))
+    	.expect(httpStatus.CREATED)
+    	.end(function (err, res) {
+    		should.not.exist(err);
+    		var uuid=res.body.id
+	   		request(app)
+	    	.get('/directors/'+uuid)
+	    	.expect(httpStatus.OK)
+ 			.end(function (err, res) {
+    			should.not.exist(err);
+    			res.body.should.have.property('id');
+    			res.body.id.should.equal(uuid);    			
+    			res.body.should.have.property('livestream_id');
+    			res.body.livestream_id.should.equal(6488818);    			
+    			res.body.should.have.property('full_name');
+    			res.body.full_name.should.equal('Martin Scorsese');    			
+    			done();
+   			});
+   		});
+    });      
+
 });
 
