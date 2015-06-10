@@ -126,7 +126,6 @@ router.route('/directors/:id')
         	}
         	var dir=req.body;
         	dir.id = req.params.id;
-        	console.log(dir)
         	if (dir.livestream_id != old.livestream_id ||
 				dir.full_name != old.full_name ||
 				dir.dob != old.dob) {

@@ -82,7 +82,6 @@ var saveOnRedis = function (director, callback) {
 					return callback(null);
 				}
 				// index movies
-				console.log("movies:"+director.favorite_movies);
 				client.sadd(getMoviesKey(director.id), director.favorite_movies, function(err, reply) {
 					return callback(err);
 				});		
